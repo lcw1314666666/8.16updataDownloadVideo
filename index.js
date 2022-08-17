@@ -132,6 +132,24 @@ Date.prototype.Format = function (fmt) { // author: meizz
             await setJSONList('newestVideo.json', { newestVideo: newVideoName })
 
             const new1080Video = await download1080VideoFile(newVideoList[0])
+
+            // 发送邮箱提示
+            let updata1080VideoOptions = {
+                from: '1820566696@qq.com', // sender address
+                to: '1820566696@qq.com', // list of receivers
+                subject: `老高最新视频${newVideoName}高清版下载完毕`, // Subject line
+                // 发送text或者html格式
+                // text: 'Hello world?', // plain text body
+                html: `<b>${newVideoName}<span>视频地址：${newVideoUrl}</span>></b>` // html body
+            };
+            // 发送邮箱
+            transporter.sendMail(updata1080VideoOptions, (error, info) => {
+                if (error) {
+                    return console.log(error);
+                }
+                console.log('邮件发送成功', info.messageId);
+                // Message sent: <04ec7731-cc68-1ef6-303c-61b0f796b78f@qq.com>
+            });
             console.log(new1080Video, 'new1080Video')
 
             await page.goto(api) // 返回主页
