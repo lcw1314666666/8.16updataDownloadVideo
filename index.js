@@ -97,13 +97,13 @@ Date.prototype.Format = function (fmt) { // author: meizz
                 html: `<b>${newVideoName}<span>视频地址：${newVideoUrl}</span>></b>` // html body
             };
             // 发送邮箱
-            // transporter.sendMail(mailOptions, (error, info) => {
-            //     if (error) {
-            //         return console.log(error);
-            //     }
-            //     console.log('邮件发送成功', info.messageId);
-            //     // Message sent: <04ec7731-cc68-1ef6-303c-61b0f796b78f@qq.com>
-            // });
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    return console.log(error);
+                }
+                console.log('邮件发送成功', info.messageId);
+                // Message sent: <04ec7731-cc68-1ef6-303c-61b0f796b78f@qq.com>
+            });
 
             // 下载新视频并上传
             let newVideoObj = await download360VideoFile(newVideoList[0])
@@ -140,7 +140,7 @@ Date.prototype.Format = function (fmt) { // author: meizz
             console.log('无新视频,继续刷新页面！', new Date().Format("yyyy-MM-dd hh:mm:ss"))
             await page.reload()
         }
-    }, 10 * 1000)
+    }, 30 * 1000)
 })();
 
 // request({
