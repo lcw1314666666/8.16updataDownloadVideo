@@ -1,7 +1,6 @@
 const path = require('path')
 const { createFFmpeg, fetchFile } = require('@ffmpeg/ffmpeg');
 const ffmpeg = createFFmpeg({ log: true });
-const { getVideoName } = require('./downloadFile.js')
 const fs = require('fs');
 
 Date.prototype.Format = function (fmt) { // author: meizz
@@ -23,15 +22,15 @@ Date.prototype.Format = function (fmt) { // author: meizz
 
 ;(async () => {
     await ffmpeg.load();
-    const dataInputVideo = await fetchFile(`files/newVideo.mp4`);
-    const dataInputAudio = await fetchFile(`files/newAudio.mp3`);
+    const dataInputVideo = await fetchFile(`files/newVideo${new Date().Format("yyyy-MM-dd")}.mp4`);
+    const dataInputAudio = await fetchFile(`files/newAudio${new Date().Format("yyyy-MM-dd")}.mp3`);
 
-    ffmpeg.FS('writeFile', `newVideo.mp4`, dataInputVideo);
-    ffmpeg.FS('writeFile', `newAudio.mp3`, dataInputAudio);
+    ffmpeg.FS('writeFile', `newVideo${new Date().Format("yyyy-MM-dd")}.mp4`, dataInputVideo);
+    ffmpeg.FS('writeFile', `newAudio${new Date().Format("yyyy-MM-dd")}.mp3`, dataInputAudio);
 
 // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental -map 0:v:0 -map 1:a:0 output.mp4
-    await ffmpeg.run('-i', 'newVideo.mp4', '-i', 'newAudio.mp3', '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', '-map', '0:v:0', '-map', '1:a:0', 'output.mp4');
-    await fs.promises.writeFile(`files/${new Date().Format("yyyy-MM-dd")}.mp4`, ffmpeg.FS('readFile', 'output.mp4'));
+    await ffmpeg.run('-i', `newVideo${new Date().Format("yyyy-MM-dd")}.mp4`, '-i', `newAudio${new Date().Format("yyyy-MM-dd")}.mp3`, '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', '-map', '0:v:0', '-map', '1:a:0', 'output.mp4');
+    await fs.promises.writeFile(`files/【老高与小沫】${new Date().Format("yyyy-MM-dd")}-1080.mp4`, ffmpeg.FS('readFile', 'output.mp4'));
     process.exit(0);
     console.log('文件合成完毕')
 })();

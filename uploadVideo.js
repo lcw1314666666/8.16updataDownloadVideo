@@ -19,6 +19,14 @@ const uploadFile = async function(browser, newVideoObj) {
 
     await PuppeteerUtil.uploadFile(uploadPage, { name: newVideoObj.videoName, url: newVideoObj.videoPath }, '//*[@id="video-up-app"]//input') // 上传视频文件
 
+    await uploadPage.waitForSelector('#video-up-app > div.content > div > div > div.video-basic > div.form > div:nth-child(3) > div > div.input.input-container > div > input')
+    await uploadPage.type("#video-up-app > div.content > div > div > div.video-basic > div.form > div:nth-child(3) > div > div.input.input-container > div > input", newVideoObj.videoName, { delay: 100 });
+
+    // 上传封面
+    await PuppeteerUtil.uploadFile(uploadPage, { name: newVideoObj.videoName, url: newVideoObj.videoCoverPath }, '//*[@id="video-up-app"]//input[@accept="image/png, image/jpeg"]')
+    await uploadPage.waitForSelector('#video-up-app > div.content > div > div > div.video-basic > div.form > div:nth-child(2) > div > div.cover-cut > div > div > div.bcc-dialog__footer > div > div > button.bcc-button.bcc-button--primary.large > span')
+    await uploadPage.click('#video-up-app > div.content > div > div > div.video-basic > div.form > div:nth-child(2) > div > div.cover-cut > div > div > div.bcc-dialog__footer > div > div > button.bcc-button.bcc-button--primary.large > span') // 点击完成封面
+
     await uploadPage.waitForSelector('#video-up-app > div.content > div > div > div.video-basic > div.form > div:nth-child(4) > div > div > div.type-check-radio-wrp > div:nth-child(2)')
     await uploadPage.click('#video-up-app > div.content > div > div > div.video-basic > div.form > div:nth-child(4) > div > div > div.type-check-radio-wrp > div:nth-child(2)') // 点击转载
     await uploadPage.type(".type-source-input-wrp .input-container .input-instance input", newVideoObj.videoUrl, { delay: 100 });  // 填写素材来源

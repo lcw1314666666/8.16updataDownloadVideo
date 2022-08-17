@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const { getJSONList, setJSONList, transporter, scrollTimer, waitForFile, waitFileDownload } = require('./utils/index')
 const { updateTop, updateAll } = require('./utils/update.js') // 更新数据
 const { uploadFile } = require('./uploadVideo.js')
-const { downloadVideoFile } = require('./utils/downloadFile.js')
+const { download1080VideoFile, download360VideoFile, uploadVideoCover } = require('./utils/downloadFile.js')
 
 Date.prototype.Format = function (fmt) { // author: meizz
     var o = {
@@ -44,7 +44,7 @@ Date.prototype.Format = function (fmt) { // author: meizz
 
     const updateTimer = setInterval(async function () {
         const newVideoList = await updateTop(page) // 获取最新视频列表
-        console.log(newVideoList)
+        console.log(newVideoList[0], '最新视频')
 
         let historyVideo = await getJSONList('newestVideo.json') // 获取历史视频
 
@@ -97,64 +97,42 @@ Date.prototype.Format = function (fmt) { // author: meizz
                 html: `<b>${newVideoName}<span>视频地址：${newVideoUrl}</span>></b>` // html body
             };
             // 发送邮箱
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    return console.log(error);
-                }
-                console.log('邮件发送成功', info.messageId);
-                // Message sent: <04ec7731-cc68-1ef6-303c-61b0f796b78f@qq.com>
-            });
+            // transporter.sendMail(mailOptions, (error, info) => {
+            //     if (error) {
+            //         return console.log(error);
+            //     }
+            //     console.log('邮件发送成功', info.messageId);
+            //     // Message sent: <04ec7731-cc68-1ef6-303c-61b0f796b78f@qq.com>
+            // });
 
             // 下载新视频并上传
+            let newVideoObj = await download360VideoFile(newVideoList[0])
+            // 下载封面
+            const coverObj = await uploadVideoCover(newVideoList[0])
 
-            const filePath = await downloadVideoFile(newVideoList[0])
-
-            // const downloadPage = await browser.newPage();
-            // await downloadPage.goto('https://en.savefrom.net/181/', {// 跳转视频下载网站
-            //     waitUntil: 'load', // Remove the timeout
-            //     timeout: 60 * 1000
-            // })
-            //
-            // await downloadPage.type('#sf_url', newVideoUrl, {delay: 20}) // 填写下载地址
-            // await downloadPage.click('#sf_submit')
-            // await downloadPage.waitForSelector('#sf_result'); // 等待下载链接加载完毕
-            //
-            // await downloadPage.waitForSelector('#sf_result .info-box .meta .title');
-            // const downloadfileName = await downloadPage.$eval('#sf_result .info-box .meta .title',e => e.title); // 获取下载文件名称
-            // console.log(downloadfileName, 'downloadfileName')
-            //
-            // await downloadPage.waitForSelector('.def-btn-box > a.link-download');
-            // await downloadPage.click('.def-btn-box > a.link-download') // 点击下载
-            //
-            // const filePath = `C:\\Users\\1\\Downloads\\${downloadfileName}.mp4`.replace(/\-/g, '_') // 下载文件路径
-
-            // 等待文件下载完毕
-            // const fileDownloadState = await waitFileDownload(filePath)
-            if (filePath) {
-                console.log('文件下载完毕')
-
-                // 整理下载视频信息
-                const newVideoObj = {
-                    videoName: newVideoList[0].videoName,
-                    videoUrl: newVideoList[0].videoUrl,
-                    videoCover: newVideoList[0].videoCover,
-                    videoPath: filePath
-                }
-
-                const downloadList = await getJSONList('./downloadJSON.json')
-                downloadList.push(newVideoObj)
-                await setJSONList('./downloadJSON.json', downloadList)
-
-                // 上传视频
-                await uploadFile(browser, newVideoObj)
-
-                const uploadHistory = await getJSONList('./uploadJSON.json') // 获取历史上传
-                uploadHistory.push(newVideoObj)
-                await setJSONList('./uploadJSON.json', uploadHistory) // 更新历史上传
-
-                // 更新最新视频json文件
-                await setJSONList('newestVideo.json', { newestVideo: newVideoName })
+            // 补充最新视频信息
+            newVideoObj = {
+                ...newVideoObj,
+                ...coverObj
             }
+
+            // 文件下载完毕 ，添加到下载记录中
+            const downloadList = await getJSONList('./downloadJSON.json')
+            downloadList.push(newVideoObj)
+            await setJSONList('./downloadJSON.json', downloadList)
+
+            // 上传视频
+            await uploadFile(browser, newVideoObj)
+
+            const uploadHistory = await getJSONList('./uploadJSON.json') // 获取历史上传
+            uploadHistory.push(newVideoObj)
+            await setJSONList('./uploadJSON.json', uploadHistory) // 更新历史上传
+
+            // 更新最新视频json文件
+            await setJSONList('newestVideo.json', { newestVideo: newVideoName })
+
+            const new1080Video = await download1080VideoFile(newVideoList[0])
+            console.log(new1080Video, 'new1080Video')
 
             await page.goto(api) // 返回主页
             // setInterval(main, 30 * 1000)
